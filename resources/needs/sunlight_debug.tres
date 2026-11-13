@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="NeedData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/need_data.gd" id="1_need"]
+[ext_resource type="Texture2D" path="res://graphics/ui/sunlight_icon.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_need")
+need_id = "sunlight"
+needed_count = 1
+randomization_pct = 0.15
+grace_sec = 25.0
+slow_multiplier = 0.15
+wilt_penalty_sec = 10.0
+icon = ExtResource("2_icon")

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="PlantData" format=3 uid="uid://cdsp7mse28nkn"]
+
+[ext_resource type="Script" uid="uid://d06rfw8jwxt31" path="res://scripts/resources/plant_data.gd" id="1_plant"]
+[ext_resource type="Script" uid="uid://qiam6yda8qoj" path="res://scripts/resources/need_data.gd" id="1_w66us"]
+[ext_resource type="Resource" path="res://resources/needs/water_debug.tres" id="2_water"]
+[ext_resource type="Texture2D" uid="uid://nai8cvx0fuhj" path="res://graphics/plants/generic_sprout.png" id="3_sprout"]
+[ext_resource type="Texture2D" uid="uid://cxtpthakddkys" path="res://graphics/plants/lotus_mid.png" id="4_mid"]
+[ext_resource type="Texture2D" uid="uid://fwwdgure7gyv" path="res://graphics/plants/lotus_mature.png" id="5_mature"]
+[ext_resource type="Texture2D" uid="uid://cbpqaquaxui2m" path="res://graphics/plants/lotus_wilted.png" id="6_wilted"]
+
+[resource]
+script = ExtResource("1_plant")
+id = "lotus"
+display_name = "Lotus"
+stage_textures = Array[Texture2D]([ExtResource("3_sprout"), ExtResource("4_mid"), ExtResource("5_mature")])
+wilted_stage_textures = Array[Texture2D]([ExtResource("6_wilted"), ExtResource("6_wilted"), ExtResource("6_wilted")])
+growth_time_sec = 150.0
+sell_value = 30
+needs = Array[ExtResource("1_w66us")]([ExtResource("2_water")])
+required_pot_id = "water"
+plant_cost = 35
