@@ -12,3 +12,6 @@ grace_sec = 25.0
 slow_multiplier = 0.15
 wilt_penalty_sec = 10.0
 icon = ExtResource("2_icon")
+bug_count = 3
+bug_speed = 150.0
+use_overlay = false
