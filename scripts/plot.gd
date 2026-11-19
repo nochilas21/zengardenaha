@@ -9,7 +9,7 @@ signal matured()
 signal clicked(plot: Plot)   # player clicked this slot (used to select it for the shop)
 signal special_event_changed()   # event appeared / won / lost / forfeited (hook for autosave)
 
-@onready var plant_sprite: TextureRect = $PlantSprite
+@onready var plant_sprite: Sprite2D = $PlantSprite
 @onready var need_popup_container: HBoxContainer = $NeedPopupContainer
 @onready var place_pot_button: Button = $PlacePotButton
 
@@ -59,6 +59,8 @@ func _ready() -> void:
 	place_pot_button.pressed.connect(_on_place_pot_pressed)
 	place_pot_button.visible = (pot_id == "")
 	place_pot_button.text = "Empty"
+	plant_sprite.material = plant_sprite.material.duplicate()  # per-plot copy
+	plant_sprite.material.set_shader_parameter("phase", randf() * TAU)
 	# Popups stack from the right edge so they stay inside the slot
 	need_popup_container.alignment = BoxContainer.ALIGNMENT_END
 	need_popup_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -88,6 +90,11 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.85, 0.2), false, 3.0)
 
 # ---------------------------------------------------------------- pot / plant
+func _set_wilt_visual(wilted: bool) -> void:
+	var m := plant_sprite.material as ShaderMaterial
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(m, "shader_parameter/droop", 1.0 if wilted else 0.0, 0.6)
+	tw.tween_property(m, "shader_parameter/desaturate", 0.7 if wilted else 0.0, 0.6)
 
 func can_plant(data: PlantData, grid_tag: String = "") -> bool:
 	if grid_tag != "" and grid_tag == data.required_pot_id:
@@ -245,6 +252,12 @@ func _refresh_wilted_visual_flag() -> void:
 func _update_growth_stage() -> void:
 	if plant_data == null or required_growth <= 0.0:
 		return
+	if plant_sprite.texture != null:
+		var s := plant_sprite.texture.get_size()
+		var target_height := 64.0   # how tall you want the plant in the plot
+		plant_sprite.scale = Vector2.ONE * (target_height / s.y)
+		plant_sprite.centered = false
+		plant_sprite.offset = Vector2(-s.x / 2.0, -s.y)
 	var stage_count = plant_data.stage_textures.size()
 	var pct = clamp(growth_progress / required_growth, 0.0, 1.0)
 	var target_stage = clamp(int(pct * stage_count), 0, stage_count - 1)
