@@ -28,3 +28,4 @@ plant_cost = 50
 lucky_variant_mature_textures = Array[Texture2D]([])
 lucky_variant_chance = 0.0
 lucky_variant_sell_bonus = 1.5
+need_count_ranges = {"music": Vector2i(3, 4), "sunlight": Vector2i(4, 5)}

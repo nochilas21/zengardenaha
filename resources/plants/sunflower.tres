@@ -29,3 +29,5 @@ plant_cost = 25
 lucky_variant_mature_textures = Array[Texture2D]([])
 lucky_variant_chance = 0.0
 lucky_variant_sell_bonus = 1.5
+need_count_ranges = {"sunlight": Vector2i(1, 2)}
+water_decay_per_sec = 0.8

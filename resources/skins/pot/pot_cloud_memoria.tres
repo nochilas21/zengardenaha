@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="PotSkinData" format=3]
+
+[ext_resource type="Script" path="res://scripts/skins/pot_skin_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://graphics/pots/cloud_memoria/pot_cloud_memoria_sheet.png" id="2_sheet"]
+[ext_resource type="Texture2D" path="res://graphics/pots/cloud_memoria/pot_cloud_memoria_preview.png" id="3_preview"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pot_cloud_memoria"
+display_name = "Memoria Cloud Pot"
+category = "pot"
+preview = ExtResource("3_preview")
+unlock_cost = 0
+pot_id = "cloud"
+texture = ExtResource("2_sheet")
+canvas_size = 600.0
+center_x = 298.0
+bottom_y = 562.0
+soil_y = 250.0
+scale = 0.65
+hframes = 6
+vframes = 6
+frame_count = 31
+fps = 12.0

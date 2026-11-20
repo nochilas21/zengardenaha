@@ -10,16 +10,30 @@ const FERTILIZER_COST: int = 15   # placeholder
 var all_pots: Array[PotData] = []
 var all_plants: Array[PlantData] = []
 
-var selected_plot: Plot = null   # set externally when the player clicks a slot on a shelf
+var selected_plot: Plot = null   # kept for compatibility; planting now uses the (+) popup on a pot
+var sell_section: VBoxContainer   # built in code so shop.tscn doesn't need changes
+var _plant_lookup: Dictionary = {}   # plant_id -> PlantData
+
+const POT_NAMES: Dictionary = {"dirt": "Dirt", "water": "Aquatic", "cloud": "Cloud"}
 
 func _ready() -> void:
+	var content = $Scroll/Content
+	var plants_label = get_node_or_null("Scroll/Content/PlantsLabel")
+	if plants_label is Label:
+		plants_label.text = "Seeds  (unlock once, then buy seeds)"
+	# Selling moved to the Inventory → "Weigh & Sell" scale (SellScale).
+	sell_section = VBoxContainer.new()   # kept (empty) so older code paths stay valid
 	_build_misc_rows()
 	_rebuild_all()
 	EconomyManager.currency_changed.connect(func(_c): _rebuild_all())
+	Inventory.changed.connect(_rebuild_all)
 
 func set_catalog(pots: Array[PotData], plants: Array[PlantData]) -> void:
 	all_pots = pots
 	all_plants = plants
+	_plant_lookup.clear()
+	for plant in plants:
+		_plant_lookup[plant.id] = plant
 	_rebuild_all()
 
 func set_selected_plot(plot: Plot) -> void:
@@ -27,6 +41,8 @@ func set_selected_plot(plot: Plot) -> void:
 	_rebuild_all()
 
 func _rebuild_all() -> void:
+	if sell_section == null:
+		return   # not ready yet
 	_rebuild_pot_rows()
 	_rebuild_plant_rows()
 
@@ -43,11 +59,14 @@ func _rebuild_pot_rows() -> void:
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(label)
 		if pot.pot_id in EconomyManager.unlocked_pot_types:
-			var place_btn = Button.new()
-			place_btn.text = "Place (%d)" % pot.place_cost
-			place_btn.disabled = not _has_selection() or selected_plot.pot_id != ""
-			place_btn.pressed.connect(_on_place_pot_pressed.bind(pot))
-			row.add_child(place_btn)
+			# Bought pots go to the Inventory; drag them from there onto a shelf
+			var owned = Label.new()
+			owned.text = "x%d " % Inventory.get_pot_count(pot.pot_id)
+			row.add_child(owned)
+			var buy_btn = Button.new()
+			buy_btn.text = "Buy (%d)" % pot.place_cost
+			buy_btn.pressed.connect(_on_buy_pot_pressed.bind(pot))
+			row.add_child(buy_btn)
 		else:
 			var unlock_btn = Button.new()
 			unlock_btn.text = "Unlock (%d)" % pot.unlock_cost
@@ -55,35 +74,44 @@ func _rebuild_pot_rows() -> void:
 			row.add_child(unlock_btn)
 		pots_section.add_child(row)
 
+# Seeds: unlock a plant once, then buy seeds into the bag. Planting happens
+# from the (+) popup on an empty pot.
 func _rebuild_plant_rows() -> void:
 	for child in plants_section.get_children():
 		child.queue_free()
-	if _has_selection() and selected_plot.pot_id == "":
-		var hint = Label.new()
-		hint.text = "Place a pot on this slot first."
-		plants_section.add_child(hint)
-		return
 	for plant in all_plants:
-		# only offer plants matching the selected slot's pot type
-		if _has_selection() and plant.required_pot_id != selected_plot.pot_id:
-			continue
 		var row = HBoxContainer.new()
 		var label = Label.new()
-		label.text = "%s [%s]" % [plant.display_name, plant.rarity]
+		label.text = "%s [%s, %s pot]" % [plant.display_name, plant.rarity, POT_NAMES.get(plant.required_pot_id, plant.required_pot_id)]
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(label)
 		if plant.id in EconomyManager.unlocked_plants:
-			var plant_btn = Button.new()
-			plant_btn.text = "Plant (%d)" % plant.plant_cost
-			plant_btn.disabled = not _has_selection() or selected_plot.plant_data != null
-			plant_btn.pressed.connect(_on_plant_pressed.bind(plant))
-			row.add_child(plant_btn)
+			var owned = Label.new()
+			owned.text = "x%d " % Inventory.get_seed_count(plant.id)
+			row.add_child(owned)
+			var buy_btn = Button.new()
+			buy_btn.text = "Seed (%d)" % plant.plant_cost
+			buy_btn.pressed.connect(_on_buy_seed_pressed.bind(plant))
+			row.add_child(buy_btn)
 		else:
 			var unlock_btn = Button.new()
 			unlock_btn.text = "Unlock (%d)" % plant.unlock_cost
 			unlock_btn.pressed.connect(func(): EconomyManager.unlock_plant(plant))
 			row.add_child(unlock_btn)
 		plants_section.add_child(row)
+
+# Sell price of one harvested plant (all multipliers are placeholders).
+# Used by the Weigh & Sell scale (SellScale).
+static func get_sell_price(plant: PlantData, variant: String) -> int:
+	var value = float(plant.sell_value)
+	match variant:
+		"unhealthy":
+			value *= 0.7
+		"lucky":
+			value *= plant.lucky_variant_sell_bonus
+		"special":
+			value *= plant.special_form_sell_multiplier
+	return int(value)
 
 func _build_misc_rows() -> void:
 	var row = HBoxContainer.new()
@@ -97,19 +125,14 @@ func _build_misc_rows() -> void:
 	row.add_child(buy_btn)
 	misc_section.add_child(row)
 
-func _on_place_pot_pressed(pot: PotData) -> void:
-	# Check BEFORE spending so gold is never taken for an occupied slot
-	if not _has_selection() or selected_plot.pot_id != "" or selected_plot.plant_data != null:
-		return
+func _on_buy_pot_pressed(pot: PotData) -> void:
 	if EconomyManager.spend(pot.place_cost):
-		selected_plot.place_pot(pot)
-	_rebuild_all()   # spend() already rebuilt once, but before the pot existed
+		Inventory.add_pot(pot.pot_id)
+	_rebuild_all()
 
-func _on_plant_pressed(plant: PlantData) -> void:
-	if not _has_selection() or selected_plot.plant_data != null or not selected_plot.can_plant(plant):
-		return
+func _on_buy_seed_pressed(plant: PlantData) -> void:
 	if EconomyManager.spend(plant.plant_cost):
-		selected_plot.plant(plant)
+		Inventory.add_seed(plant.id)
 	_rebuild_all()
 
 func buy_fertilizer() -> void:

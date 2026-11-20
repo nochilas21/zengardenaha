@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ShelfSkinData" format=3]
+
+[ext_resource type="Script" path="res://scripts/skins/shelf_skin_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://graphics/shelves/basic/shelf_basic_left.png" id="2_left"]
+[ext_resource type="Texture2D" path="res://graphics/shelves/basic/shelf_basic_middle.png" id="3_middle"]
+[ext_resource type="Texture2D" path="res://graphics/shelves/basic/shelf_basic_right.png" id="4_right"]
+
+[resource]
+script = ExtResource("1_script")
+id = "shelf_basic"
+display_name = "Basic Wooden Shelf"
+category = "shelf"
+unlock_cost = 0
+base_left = ExtResource("2_left")
+base_middle = ExtResource("3_middle")
+base_right = ExtResource("4_right")
+canvas_size = 1024.0
+surface_y = 600.0
+crop_bottom_y = 770.0
+slot_x_left = 560.0
+slot_x_middle = 512.0
+slot_x_right = 464.0
+pot_scale = 1.2
+tile_display_width = 192.0
+top_padding = 64.0
+slot_width = 130.0

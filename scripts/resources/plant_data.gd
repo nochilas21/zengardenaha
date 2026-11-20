@@ -19,9 +19,18 @@ class_name PlantData
 @export var lucky_variant_chance: float = 0.0
 @export var lucky_variant_sell_bonus: float = 1.5
 
+@export_group("Needs")
+# How many times each need appears per planting: need_id -> Vector2i(min, max).
+# A random count in [min, max] is rolled every time the plant is planted.
+# Needs not listed here use their NeedData.needed_count. "water" is ignored
+# (water uses the bar below instead of a count).
+@export var need_count_ranges: Dictionary = {}
+@export var water_decay_per_sec: float = 1.0   # % of the water bar lost per second while growing (due at 30%)
+
 @export_group("Special event")
 @export var special_event_id: String = ""            # "" = none; "memoria_run" = Memoria Moonflower jump-and-run
 @export_range(0.0, 1.0, 0.005) var special_form_chance: float = 0.125   # chance after WINNING the event; tweak for testing
 @export var special_event_max_losses: int = 3          # lose this many times → event gone, plant matures normally
 @export var special_event_cooldown_sec: float = 10.0   # event popup is greyed out this long after a loss
+@export var special_form_sell_multiplier: float = 2.0   # placeholder price bonus for the special form
 @export var special_form_mature_textures: Array[Texture2D] = []   # empty = placeholder blue glow
