@@ -58,6 +58,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	_build_layers()
+	UiScale.changed.connect(func(_f): _relayout())
 
 # Show the shelf once it has its real size/position. Waits a frame, then
 # re-applies the size so the transparent window repaints properly.
@@ -148,7 +149,9 @@ func _relayout() -> void:
 		plot.configure_slot(Vector2(slot_w, slot_h), s * skin.pot_scale)
 
 	_sun_badge.position = Vector2(total.x - 32, 4)
-	size = Vector2i(ceili(total.x), ceili(total.y))
+	# Layout is in design pixels; the OS window and its content are scaled by UiScale
+	content_scale_factor = UiScale.factor
+	size = UiScale.size_for(total)
 	slots_changed.emit()
 
 func _add_tile(layer: Control, tex: Texture2D, x: float, top: float, tile_w: float, is_base: bool) -> void:
@@ -217,7 +220,7 @@ func contains_screen_point(screen_pos: Vector2i) -> bool:
 func get_plot_at_screen(screen_pos: Vector2i) -> Plot:
 	if not contains_screen_point(screen_pos):
 		return null
-	var local = Vector2(screen_pos - position)
+	var local = UiScale.to_content(self, screen_pos)
 	for plot in get_plots():
 		if Rect2(plot.position, plot.size).has_point(local):
 			return plot

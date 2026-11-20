@@ -48,7 +48,7 @@ func open_ui() -> void:
 	win.title = "Music Box"
 	win.unresizable = true
 	win.always_on_top = true
-	win.size = Vector2i(400, 300)
+	UiScale.track(win, Vector2(400, 300))
 	win.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
 	get_tree().root.add_child(win)
 	_viewer = MUSIC_BOX_SCENE.instantiate()
@@ -74,7 +74,7 @@ func _fit_window(win: Window) -> void:
 		return
 	var panel = _viewer.get_node_or_null("Panel")
 	if panel is Control:
-		win.size = Vector2i(ceili(panel.position.x + panel.size.x + 10), ceili(panel.position.y + panel.size.y + 10))
+		UiScale.track(win, Vector2(panel.position.x + panel.size.x + 10, panel.position.y + panel.size.y + 10))
 
 # Every plot (any shelf) whose music need is currently due.
 func get_listening_plots() -> Array:

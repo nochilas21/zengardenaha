@@ -23,6 +23,7 @@ config/features=PackedStringArray("4.7")
 EconomyManager="*res://autoload/EconomyManager.gd"
 SaveManager="*res://autoload/SaveManager.gd"
 MusicManager="*res://autoload/MusicManager.gd"
+UiScale="*res://autoload/UiScale.gd"
 Inventory="*res://autoload/Inventory.gd"
 
 [display]

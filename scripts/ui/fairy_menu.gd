@@ -44,6 +44,7 @@ var _last_pos: Vector2i
 var _velocity: Vector2 = Vector2.ZERO
 var _click_times: Array[float] = []
 var _tween: Tween = null
+var _shift_px: int = 0   # how far (screen px) the window moved left to keep the fairy in place while open
 
 func _init() -> void:
 	borderless = true
@@ -69,6 +70,7 @@ func _ready() -> void:
 	_root.add_child(_fairy)
 
 	Inventory.changed.connect(apply_skins)
+	UiScale.changed.connect(func(_f): _apply_layout(is_open, false))
 	apply_skins()
 	_apply_layout(false, false)
 	_reveal()
@@ -160,20 +162,20 @@ func _item_target(i: int, center: Vector2) -> Vector2:
 # Closed: the window is just the fairy box. Open: the window grows around the
 # fairy (the fairy stays at the same spot on screen) and the items fly out.
 func _apply_layout(open: bool, animate: bool) -> void:
-	var was_open = _fairy.position.x > 0.0   # the fairy is offset only while open
 	is_open = open
+	var f = UiScale.factor
+	content_scale_factor = f   # everything inside is in design pixels
 	var big = _open_size()
 	var fairy_pos_open = Vector2((big.x - FAIRY_BOX.x) / 2.0, 0.0)
+	position += Vector2i(_shift_px, 0)   # undo any previous shift first
+	_shift_px = 0
 	if open:
-		if was_open:
-			position += Vector2i(int(_fairy.position.x), 0)   # undo the old shift (ring count may have changed)
-		position -= Vector2i(int(fairy_pos_open.x), 0)
-		size = Vector2i(big)
+		_shift_px = int(fairy_pos_open.x * f)
+		position -= Vector2i(_shift_px, 0)
+		size = UiScale.size_for(big)
 		_fairy.position = fairy_pos_open
 	else:
-		if was_open:
-			position += Vector2i(int(_fairy.position.x), 0)
-		size = Vector2i(FAIRY_BOX)
+		size = UiScale.size_for(FAIRY_BOX)
 		_fairy.position = Vector2.ZERO
 	var center = _fairy.position + FAIRY_CENTER
 	if _tween != null and _tween.is_valid():
@@ -242,7 +244,7 @@ func _on_fairy_clicked() -> void:
 
 # Saved as the fairy's own screen position (same whether the menu is open or not)
 func to_dict() -> Dictionary:
-	var p = position + Vector2i(_fairy.position)
+	var p = position + Vector2i(_shift_px, 0)
 	return {"screen_pos": [p.x, p.y]}
 
 func from_dict(data: Dictionary) -> void:

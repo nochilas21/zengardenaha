@@ -112,7 +112,7 @@ var _font: Font
 static func open_in_window(parent: Node, retry_allowed: bool = true) -> MemoriaRun:
 	var win = Window.new()
 	win.title = "Memoria Moonflower — Blue Moon Night"
-	win.size = Vector2i(int(VIEW_W), int(VIEW_H))
+	UiScale.track(win, Vector2(VIEW_W, VIEW_H))
 	win.unresizable = true
 	win.always_on_top = true
 	win.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN

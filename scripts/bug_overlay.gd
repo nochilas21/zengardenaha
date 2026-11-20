@@ -23,9 +23,11 @@ func setup(count: int, texture: Texture2D, bug_speed: float, origin: Vector2i, s
 	unresizable = true
 	position = screen_rect.position
 	size = screen_rect.size   # usable rect (excludes taskbar), so not treated as exclusive fullscreen
+	content_scale_factor = UiScale.factor   # bugs are drawn at UI scale
 
-	var local_area = Rect2i(Vector2i.ZERO, screen_rect.size)
-	var local_origin = Vector2(origin - screen_rect.position)
+	var f = UiScale.factor
+	var local_area = Rect2i(Vector2i.ZERO, Vector2i(Vector2(screen_rect.size) / f))
+	var local_origin = Vector2(origin - screen_rect.position) / f
 	var bug_size = Vector2(DesktopBug.BUG_SIZE, DesktopBug.BUG_SIZE)
 	for i in range(count):
 		var button = TextureButton.new()
@@ -69,8 +71,9 @@ func _update_passthrough() -> void:
 	# (Where two bugs overlap, that overlap may become click-through.)
 	var poly = PackedVector2Array()
 	poly.append(Vector2.ZERO)
+	var f = content_scale_factor   # the polygon is in window pixels, the bugs in content pixels
 	for button in _bugs:
-		var r = Rect2(button.position, button.size).grow(HIT_PADDING)
+		var r = Rect2(button.position * f, button.size * f).grow(HIT_PADDING * f)
 		poly.append(r.position)
 		poly.append(Vector2(r.end.x, r.position.y))
 		poly.append(r.end)

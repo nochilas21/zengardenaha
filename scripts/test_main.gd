@@ -32,6 +32,9 @@ var _sell_scale: SellScale = null
 func _ready() -> void:
 	settings = SettingsPanel.load_settings()
 	SettingsPanel.apply_audio(settings)
+	UiScale.set_override(float(settings.get("ui_scale", 0.0)))   # before any window is created
+	get_window().content_scale_factor = UiScale.factor
+	UiScale.changed.connect(func(f): get_window().content_scale_factor = f)
 	EconomyManager.add_fertilizer(5)
 	EconomyManager.currency_changed.connect(func(_c): _refresh_hud())
 	EconomyManager.fertilizer_changed.connect(func(_c): _refresh_hud())
@@ -136,7 +139,7 @@ func _on_give_gold_pressed() -> void:
 
 func _default_shelf_position(index: int) -> Vector2i:
 	var rect = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
-	return Vector2i(rect.position.x + 40, rect.position.y + 40 + (index - 1) * 190)
+	return Vector2i(rect.position.x + 40, rect.position.y + 40 + int((index - 1) * 270 * UiScale.factor))
 
 func _spawn_shelf(index: int, data: Dictionary = {}, lookup: Dictionary = {}) -> GridWindow:
 	var shelf = GridWindow.new()
@@ -245,7 +248,7 @@ func _build_menu_and_windows(pots: Array[PotData]) -> void:
 	fairy_menu = FairyMenu.new()
 	add_child(fairy_menu)
 	var rect = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
-	fairy_menu.position = Vector2i(rect.end.x - 380, rect.position.y + 40)
+	fairy_menu.position = Vector2i(rect.end.x - int(260 * UiScale.factor), rect.position.y + 40)
 	_register_menu_items()
 	fairy_menu.item_activated.connect(_on_menu_item)
 	fairy_menu.tool_drag_started.connect(_on_menu_item)
@@ -257,6 +260,7 @@ func _build_menu_and_windows(pots: Array[PotData]) -> void:
 	settings_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	settings_window.add_child(settings_panel)
 	settings_panel.shelves_on_top_changed.connect(_set_shelves_on_top)
+	settings_panel.ui_scale_changed.connect(_on_ui_scale_changed)
 	settings_panel.hide_all_changed.connect(_set_hide_all)
 	settings_panel.shelf_visibility_changed.connect(_on_shelf_visibility_changed)
 	settings_panel.plot_visibility_changed.connect(func(plot, shown): plot.set_user_hidden(not shown))
@@ -316,7 +320,7 @@ func _on_menu_item(id: String) -> void:
 func _make_panel_window(window_title: String, window_size: Vector2i) -> Window:
 	var win = Window.new()
 	win.title = window_title
-	win.size = window_size
+	UiScale.track(win, Vector2(window_size))
 	win.always_on_top = true
 	win.visible = false
 	win.close_requested.connect(func(): win.hide())
@@ -391,6 +395,10 @@ func _set_hide_all(value: bool) -> void:
 func _apply_visibility() -> void:
 	for shelf in shelves.values():
 		shelf.visible = not hide_all and not shelf.user_hidden
+
+func _on_ui_scale_changed(value: float) -> void:
+	settings["ui_scale"] = value
+	UiScale.set_override(value)
 
 func _on_shelf_visibility_changed(shelf: GridWindow, shown: bool) -> void:
 	shelf.user_hidden = not shown

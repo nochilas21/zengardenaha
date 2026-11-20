@@ -22,7 +22,8 @@ func setup(texture: Texture2D, bug_speed: float, start_pos: Vector2i, screen_rec
 	transparent_bg = true
 	always_on_top = true
 	unresizable = true
-	size = Vector2i(BUG_SIZE, BUG_SIZE)
+	content_scale_factor = UiScale.factor
+	size = UiScale.size_for(Vector2(BUG_SIZE, BUG_SIZE))
 	_motion = BugMotion.new(Vector2(start_pos), bug_speed, screen_rect, Vector2(size))
 	position = Vector2i(_motion.pos)
 

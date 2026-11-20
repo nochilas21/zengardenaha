@@ -35,7 +35,7 @@ static func weight_of(plant: PlantData, variant: String) -> float:
 
 func _init() -> void:
 	title = "Weigh & Sell"
-	size = Vector2i(640, 420)
+	UiScale.track(self, Vector2(640, 420))
 	unresizable = true
 	always_on_top = true
 	initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN

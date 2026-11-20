@@ -12,6 +12,7 @@ class_name SettingsPanel
 # stored in the save game.
 
 signal shelves_on_top_changed(on_top: bool)
+signal ui_scale_changed(value: float)   # 0 = Auto
 signal hide_all_changed(hidden: bool)
 signal shelf_visibility_changed(shelf: GridWindow, shown: bool)
 signal plot_visibility_changed(plot: Plot, shown: bool)
@@ -20,6 +21,7 @@ signal quit_requested()
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const BUSES: Array[String] = ["Master", "Music", "SFX"]
+const UI_SCALES: Array[float] = [0.0, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0]   # 0 = Auto
 
 var _list: VBoxContainer
 var _shelves: Array = []
@@ -31,7 +33,10 @@ var _settings: Dictionary = {}
 static func load_settings() -> Dictionary:
 	var cfg = ConfigFile.new()
 	cfg.load(SETTINGS_PATH)   # missing file → defaults below
-	var result = {"shelves_on_top": cfg.get_value("display", "shelves_on_top", true)}
+	var result = {
+		"shelves_on_top": cfg.get_value("display", "shelves_on_top", true),
+		"ui_scale": cfg.get_value("display", "ui_scale", 0.0),
+	}
 	for bus in BUSES:
 		result["volume_" + bus] = cfg.get_value("audio", bus, 80.0)
 	return result
@@ -39,6 +44,7 @@ static func load_settings() -> Dictionary:
 static func save_settings(settings: Dictionary) -> void:
 	var cfg = ConfigFile.new()
 	cfg.set_value("display", "shelves_on_top", settings.get("shelves_on_top", true))
+	cfg.set_value("display", "ui_scale", settings.get("ui_scale", 0.0))
 	for bus in BUSES:
 		cfg.set_value("audio", bus, settings.get("volume_" + bus, 80.0))
 	cfg.save(SETTINGS_PATH)
@@ -91,6 +97,7 @@ func refresh(shelves: Array, hide_all: bool, settings: Dictionary) -> void:
 		_list.add_child(_volume_row(bus))
 
 	_header("Display")
+	_list.add_child(_ui_scale_row())
 	var on_top = CheckBox.new()
 	on_top.text = "Shelves always on top"
 	on_top.button_pressed = bool(_settings.get("shelves_on_top", true))
@@ -171,6 +178,31 @@ func _shelf_rows(shelf: GridWindow) -> Control:
 		pot_checks.append(check)
 	shelf_check.toggled.connect(_on_shelf_toggled.bind(shelf, pot_checks))
 	return box
+
+# UI size for every game window: Auto (from the screen's DPI) or a fixed %.
+func _ui_scale_row() -> Control:
+	var row = HBoxContainer.new()
+	var label = Label.new()
+	label.text = "UI size"
+	label.custom_minimum_size = Vector2(70, 0)
+	row.add_child(label)
+	var option = OptionButton.new()
+	var current = float(_settings.get("ui_scale", 0.0))
+	for i in range(UI_SCALES.size()):
+		var v = UI_SCALES[i]
+		var text = "Auto (%d%%)" % roundi(UiScale.auto_factor() * 100.0) if v == 0.0 else "%d%%" % roundi(v * 100.0)
+		option.add_item(text, i)
+		if is_equal_approx(v, current):
+			option.select(i)
+	option.item_selected.connect(_on_ui_scale_selected)
+	row.add_child(option)
+	return row
+
+func _on_ui_scale_selected(index: int) -> void:
+	var value = UI_SCALES[index]
+	_settings["ui_scale"] = value
+	save_settings(_settings)
+	ui_scale_changed.emit(value)
 
 func _on_on_top_toggled(value: bool) -> void:
 	_settings["shelves_on_top"] = value

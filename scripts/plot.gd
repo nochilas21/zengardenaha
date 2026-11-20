@@ -809,7 +809,7 @@ func _clear_swarm() -> void:
 func _get_screen_center() -> Vector2i:
 	# This plot's center in desktop (screen) pixel coordinates
 	var local_center = get_global_rect().get_center()
-	return get_window().position + Vector2i(local_center)
+	return UiScale.to_screen(get_window(), local_center)
 
 # ---------------------------------------------------------------- special event
 

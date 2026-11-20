@@ -24,7 +24,7 @@ static func open(parent: Node, plot: Plot, catalog: Array[PlantData]) -> SeedPic
 
 func _init() -> void:
 	title = "Choose a seed"
-	size = Vector2i(320, 380)
+	UiScale.track(self, Vector2(320, 380))
 	unresizable = true
 	always_on_top = true
 	initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN

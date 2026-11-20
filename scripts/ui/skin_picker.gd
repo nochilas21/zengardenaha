@@ -30,7 +30,7 @@ static func open(parent: Node, category: String, current_id: String, on_pick: Ca
 	return picker
 
 func _init() -> void:
-	size = Vector2i(300, 320)
+	UiScale.track(self, Vector2(300, 320))
 	unresizable = true
 	always_on_top = true
 	close_requested.connect(queue_free)

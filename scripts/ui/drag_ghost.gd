@@ -29,8 +29,10 @@ static func start(parent: Node, content: Control, on_drop: Callable, on_hover: C
 	ghost._on_drop = on_drop
 	ghost._on_hover = on_hover
 	ghost._on_cancel = on_cancel
-	ghost.size = Vector2i(max(16, int(content.custom_minimum_size.x)), max(16, int(content.custom_minimum_size.y)))
-	content.size = Vector2(ghost.size)
+	var design = Vector2(max(16.0, content.custom_minimum_size.x), max(16.0, content.custom_minimum_size.y))
+	ghost.content_scale_factor = UiScale.factor
+	ghost.size = UiScale.size_for(design)
+	content.size = design
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ghost.add_child(content)
 	parent.add_child(ghost)
